@@ -3,84 +3,178 @@ import {
   computed,
   defineComponent,
   reactive,
-  type PropType,
-  onMounted,
-  onBeforeUnmount,
   ref,
+  watch,
+  watchEffect,
+  type PropType,
 } from "vue";
 import MazeSprite from "@/components/MazeSprite/index.vue";
 import type { Grid } from "@/maps";
-import { findCellByValue, walkGrid } from "@/utils";
+import type { Position } from "@/utils";
 
 export default defineComponent({
   name: "MazeView",
+  emits: ["cellChange"],
   props: {
     grid: {
       type: Array as PropType<Grid>,
       default: () => [],
     },
+    gridProps: {
+      type: Object,
+      default: () => ({}),
+    },
+    cellStyles: {
+      type: Object,
+      default: () => ({}),
+    },
+    curPos: {
+      type: Object as PropType<Position>,
+      default: () => ({ x: 0, y: 0 }),
+    },
+    mutable: {
+      type: Boolean,
+      default: false,
+    },
+    hasMask: {
+      type: Boolean,
+      default: true,
+    },
   },
-  setup(props) {
-    const gridProps = walkGrid(props.grid);
-    const sprite = ref<InstanceType<typeof MazeSprite> | null>(null);
+  setup(props, { emit }) {
+    // eslint-disable-next-line vue/no-setup-props-destructure
+    const { maxX, maxY } = props.gridProps;
+    const xAxis = (maxX + 1) * 20;
+    const yAxis = (maxY + 1) * 20;
 
-    const updatePositon = (e: KeyboardEvent) => {
-      let dx,
-        dy = 0;
-      switch (e.key) {
-        case "ArrowUp":
-          dy = -1;
-          break;
-        case "ArrowRight":
-          dx = 1;
-          break;
-        case "ArrowDown":
-          dy = 1;
-          break;
-        case "ArrowLeft":
-          dx = -1;
-          break;
+    const onCellClick = (x: number, y: number, col: number) => {
+      if (props.mutable) {
+        emit("cellChange", x, y, col === 1 ? 0 : 1);
       }
-      sprite.value?.move(dx, dy);
     };
 
-    onMounted(() => {
-      window.addEventListener("keydown", updatePositon);
-    });
+    let edting = false;
+    const onMousedown = () => {
+      if (props.mutable) {
+        edting = true;
+      }
+    };
+    const onMouseup = () => {
+      if (props.mutable) {
+        edting = false;
+      }
+    };
 
-    onBeforeUnmount(() => {
-      window.removeEventListener("keydown", updatePositon);
-    });
+    const onMouseEnter = (x: number, y: number) => {
+      if (props.mutable && edting) {
+        emit("cellChange", x, y, 0);
+      }
+    };
 
-    const Rows = props.grid.map((row) => {
-      const Cols = row.map((col) => {
-        const classList = [];
-        if (col >= 1) {
-          classList.push("block");
-        } else if (col === -1) {
-          classList.push("entry");
-        } else if (col === -2) {
-          classList.push("out");
-        } else {
-          classList.push("road");
-        }
+    const Rows = computed(() => {
+      return props.grid.map((row, i) => {
+        const Cols = row.map((col, j) => {
+          const classList = [];
+          if (col >= 1) {
+            classList.push("block");
+          } else if (col === -1) {
+            classList.push("entry");
+          } else if (col === -2) {
+            classList.push("out");
+          } else {
+            classList.push("road");
+          }
 
-        return <div class={`col cell ${classList.join(" ")}`}></div>;
+          const style = props.cellStyles[`${j}_${i}`];
+
+          return (
+            <div
+              class={`col cell ${classList.join(" ")}`}
+              style={style}
+              onClick={() => onCellClick(j, i, col)}
+              onMousedown={() => onMousedown()}
+              onMouseenter={() => onMouseEnter(j, i)}
+              onMouseup={() => onMouseup()}
+            ></div>
+          );
+        });
+        return <div class="row">{Cols}</div>;
       });
-      return <div class="row">{Cols}</div>;
     });
+
+    const viewBox = computed(() => {
+      return `0 0 ${(props.gridProps.maxX + 1) * 20} ${
+        (props.gridProps.maxY + 1) * 20
+      }`;
+    });
+
+    const lastPos = reactive({ x: -99, y: -99 } as Position);
+    const pathD = ref("");
+
+    const calcPathD = (curPos: Position, lastPos: Position) => {
+      const { x, y } = curPos;
+      const { x: lastX, y: lastY } = lastPos;
+      const xPos = x * 20;
+      const yPos = y * 20;
+
+      const fouseCube = `M ${xPos} ${yPos} ${drawCube()}`;
+
+      let fouseLastCube = "";
+      if (lastX !== undefined && lastY !== undefined) {
+        const lastXPos = lastX * 20;
+        const lastYPos = lastY * 20;
+        fouseLastCube = `M ${lastXPos} ${lastYPos} ${drawCube()}`;
+      }
+
+      pathD.value = `${fouseCube} ${fouseLastCube}`;
+    };
+
+    const drawCube = () => {
+      const cellSize = 20;
+      return `h -${cellSize} v ${cellSize} h ${cellSize} v ${cellSize} h20 v -${cellSize} h20 v -${cellSize} h -${cellSize} v -${cellSize} h -${cellSize} v ${cellSize}`;
+    };
+
+    watch(
+      props.curPos,
+      (newValue) => {
+        calcPathD(props.curPos, lastPos);
+
+        Object.assign(lastPos, newValue);
+      },
+      { immediate: true }
+    );
 
     return () => (
       <div class="maze-view">
         <div class="maze-view-center">
-          <div class="maze-view-grid">{Rows}</div>
+          <div class="maze-view-grid">{Rows.value}</div>
           <div class="maze-view-sprite-container">
-            <MazeSprite
-              ref={sprite}
-              grid={props.grid}
-              {...gridProps}
-            ></MazeSprite>
+            <MazeSprite grid={props.grid} curPos={props.curPos}></MazeSprite>
           </div>
+
+          {props.hasMask && (
+            <div class="maze-view-mask">
+              <svg viewBox={viewBox.value}>
+                <mask id="mask">
+                  <rect
+                    x="0"
+                    y="0"
+                    width={xAxis}
+                    height={yAxis}
+                    fill="white"
+                  ></rect>
+                  <path d={pathD.value} fill="black" />
+                </mask>
+                <rect
+                  mask="url(#mask)"
+                  x="0"
+                  y="0"
+                  width={xAxis}
+                  height={yAxis}
+                ></rect>
+              </svg>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -98,31 +192,36 @@ export default defineComponent({
 .maze-view-center {
   position: relative;
 }
+.maze-view-center {
+  outline: 4px solid #333;
+}
 .cell {
   width: 20px;
   height: 20px;
-  border: 1px solid #666;
+  border: 1px solid #e8e8e8;
   box-sizing: border-box;
-  background-color: antiquewhite;
+  background-color: #e8e8e8;
 }
 .block {
-  background-color: black;
+  background-color: #333;
 }
 .entry {
-  background-color: greenyellow;
+  background-color: #4caf50;
 }
 .out {
-  background-color: greenyellow;
+  background-color: #4caf50;
 }
 
 .row {
   display: flex;
 }
-.maze-view-sprite-container {
+.maze-view-sprite-container,
+.maze-view-mask {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
+  pointer-events: none;
 }
 </style>

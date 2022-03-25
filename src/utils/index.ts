@@ -22,7 +22,7 @@ export function walkGrid(gird: Grid) {
   if (!gird[0]) return {};
 
   const maxY = gird.length - 1;
-  const maxX = gird[0].length;
+  const maxX = gird[0].length - 1;
   let entryPos = { x: 0, y: 0 };
   let outPos = { x: 0, y: 0 };
 
@@ -58,4 +58,49 @@ export function isBlocked(grid: Grid, postion: Position) {
 
 export function minmax(value: number, max = 0, min = 0) {
   return Math.min(max, Math.max(min, value));
+}
+
+export function randomStep() {
+  const dir = Math.floor(Math.random() * 10) % 6;
+  const stepMaps = [
+    { dx: 0, dy: 1 },
+    { dx: -1, dy: 0 },
+    { dx: 1, dy: 0 },
+    { dx: 0, dy: -1 },
+    { dx: 1, dy: 0 },
+    { dx: 1, dy: 0 },
+  ];
+
+  return stepMaps[dir];
+}
+
+export function diffPos(pos1: Position, pos2: Position) {
+  return {
+    dx: pos1.x - pos2.x,
+    dy: pos1.y - pos2.y,
+  };
+}
+
+export function getAroundValue(curPos: Position, grid: Grid) {
+  const { x, y } = curPos;
+  const top = { x, y: y - 1 };
+  const right = { x: x + 1, y };
+  const bottom = { x, y: y + 1 };
+  const left = { x: x - 1, y };
+
+  return [
+    getPosValue(top, grid),
+    getPosValue(right, grid),
+    getPosValue(bottom, grid),
+    getPosValue(left, grid),
+  ];
+}
+
+export function getPosValue(pos: Position, grid: Grid) {
+  const { x, y } = pos;
+  if (!grid[y]) return undefined;
+
+  if (grid[y][x] === undefined) return undefined;
+
+  return grid[y][x];
 }

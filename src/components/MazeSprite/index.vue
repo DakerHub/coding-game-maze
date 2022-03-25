@@ -1,7 +1,7 @@
 <script lang="tsx">
 import type { Grid } from "@/maps";
-import { isBlocked, minmax, type Position } from "@/utils";
-import { defineComponent, reactive, computed, type PropType } from "vue";
+import type { Position } from "@/utils";
+import { defineComponent, computed, type PropType } from "vue";
 
 export default defineComponent({
   name: "MazeSprite",
@@ -10,48 +10,14 @@ export default defineComponent({
       type: Array as PropType<Grid>,
       default: () => [],
     },
-    entryPos: {
+    curPos: {
       type: Object as PropType<Position>,
-      default: () => ({}),
-    },
-    outPos: {
-      type: Object as PropType<Position>,
-      default: () => ({}),
-    },
-    maxY: {
-      type: Number,
-      defalut: 0,
-    },
-    maxX: {
-      type: Number,
-      defalut: 0,
+      default: () => ({ x: 0, y: 0 }),
     },
   },
-  setup(props, { expose }) {
-    const currentPos = reactive(props.entryPos);
-
+  setup(props) {
     const style = computed(() => {
-      return `top: ${currentPos.y * 20}px; left: ${currentPos.x * 20}px`;
-    });
-
-    const move = (dx = 0, dy = 0) => {
-      const allowValues = [-1, 0, 1];
-      if (!(allowValues.includes(dx) && allowValues.includes(dy))) {
-        throw new Error("dx, dy must be -1/0/-1");
-      }
-
-      let nextPosition = { ...currentPos };
-
-      nextPosition.x = minmax(nextPosition.x + dx, props.maxX, 0);
-      nextPosition.y = minmax(nextPosition.y + dy, props.maxY, 0);
-
-      if (!isBlocked(props.grid, nextPosition)) {
-        Object.assign(currentPos, nextPosition);
-      }
-    };
-
-    expose({
-      move,
+      return `top: ${props.curPos.y * 20}px; left: ${props.curPos.x * 20}px`;
     });
 
     return () => (
@@ -71,11 +37,22 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: all 0.3s;
 }
 .sprite__inner {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background-color: blue;
+  animation: wave 0.3s infinite alternate-reverse;
+}
+
+@keyframes wave {
+  0% {
+    outline: 4px solid #9ad59c;
+  }
+  100% {
+    outline: 0px solid #9ad59c;
+  }
 }
 </style>
