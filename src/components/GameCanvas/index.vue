@@ -139,13 +139,14 @@ export default defineComponent({
           const codes = editor.value?.getDoc();
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const _diffPos = diffPos;
+          const _setCellStyle = setCellStyle;
           const execCode = `
           const { dx, dy } = findNext(
             curPos,
             ${JSON.stringify(around)},
-            payload,
+            window,
             {
-              setCellStyle,
+              setCellStyle: _setCellStyle,
               diffPos: _diffPos
             }
           );
