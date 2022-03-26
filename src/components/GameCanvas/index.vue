@@ -9,6 +9,7 @@ import {
   ref,
 } from "vue";
 import MazeView from "@/components/MazeView/index.vue";
+import CodeEditor from "@/components/CodeEditor/index.vue";
 import { map1 } from "@/maps/index";
 import {
   isBlocked,
@@ -17,9 +18,10 @@ import {
   randomStep,
   type Position,
   getAroundValue,
+  diffPos,
 } from "@/utils";
 import Record from "@/utils/record";
-import { findNext } from "@/utils/route";
+import { initialCodeText, mySolution } from "@/utils/route";
 
 export default defineComponent({
   name: "GameCanvas",
@@ -28,25 +30,29 @@ export default defineComponent({
     const interval = ref(200);
     const grid = reactive(map1.map);
     const gridProps = computed(() => walkGrid(grid)).value;
-    const state = reactive({ manual: false, gridMutable: false });
+    const state = reactive({
+      manual: false,
+      gridMutable: false,
+      emptyDoc: true,
+    });
     const record = new Record();
     const cellStyles = ref({} as any);
+    const codeText = ref(initialCodeText);
+    const editor = ref(null as any);
 
     let timer = 0;
 
     const curPos = reactive({ ...gridProps.entryPos } as Position);
+
     let payload = {};
 
     const changeGrid = (x: number, y: number, val: number) => {
       grid[y][x] = val;
     };
 
-    const exportGrid = () => {
-      console.log(
-        "%cFrank",
-        "color:#fff;background:#333;padding:2px 4px;border-radius:2px;border-left:4px solid red",
-        JSON.stringify(grid)
-      );
+    const toggleDoc = () => {
+      editor.value?.updateDoc(state.emptyDoc ? mySolution : initialCodeText);
+      state.emptyDoc = !state.emptyDoc;
     };
 
     const checkGame = () => {
@@ -67,6 +73,7 @@ export default defineComponent({
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const setCellStyle = (style: any) => {
       cellStyles.value[`${curPos.x}_${curPos.y}`] = style;
     };
@@ -105,25 +112,31 @@ export default defineComponent({
       nextTick(() => {
         Object.assign(curPos, gridProps.entryPos);
       });
-      payload = {};
       cellStyles.value = {};
       record.clear();
+      payload = {};
     };
 
     const play = () => {
       clearInterval(timer);
       timer = setInterval(() => {
         try {
-          const { dx, dy } = findNext(
+          const around = getAroundValue(curPos, grid);
+          const codes = editor.value?.getDoc();
+          const _diffPos = diffPos;
+          const execCode = `const { dx, dy } = findNext(
             curPos,
-            getAroundValue(curPos, grid),
+            ${JSON.stringify(around)},
             payload,
             {
               setCellStyle,
+              diffPos: _diffPos
             }
           );
-          // const { dx, dy } = randomStep();
-          move(dx, dy);
+          move(dx, dy);`;
+          codes.push(execCode);
+
+          eval(codes.join("\n"));
         } catch (error) {
           console.error(error);
           clearInterval(timer);
@@ -186,11 +199,16 @@ export default defineComponent({
           ></MazeView>
         </div>
         <div class="sidebar">
-          <button onClick={play}>Play</button>
-          <button onClick={reset}>Reset</button>
-          <button onClick={stop}>Stop</button>
-          <button onClick={toggleMask}>Toggle Mask</button>
-          <button onClick={exportGrid}>Export grid</button>
+          <div class="tool">
+            <button onClick={play}>Play</button>
+            <button onClick={reset}>Reset</button>
+            <button onClick={stop}>Stop</button>
+            <button onClick={toggleMask}>Toggle Mask</button>
+            <button onClick={toggleDoc}>
+              {state.emptyDoc ? "Daker's solution" : "Do it yourself"}
+            </button>
+          </div>
+          <CodeEditor ref={editor} value={codeText.value}></CodeEditor>
         </div>
       </div>
     );
@@ -226,8 +244,20 @@ h1 {
   color: #eee;
 }
 .sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 10px;
   min-width: 600px;
   border-left: 2px solid #333;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.code-editor {
+  flex-grow: 1;
+}
+.tool {
+  margin-bottom: 10px;
 }
 </style>
