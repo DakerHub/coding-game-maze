@@ -1,4 +1,5 @@
 <script lang="tsx">
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
   computed,
   defineComponent,
@@ -44,6 +45,7 @@ export default defineComponent({
 
     const curPos = reactive({ ...gridProps.entryPos } as Position);
 
+    // @ts-ignore
     window.payload = {};
 
     const changeGrid = (x: number, y: number, val: number) => {
@@ -128,6 +130,8 @@ export default defineComponent({
       });
       cellStyles.value = {};
       record.clear();
+
+      // @ts-ignore
       window.payload = {};
     };
 
