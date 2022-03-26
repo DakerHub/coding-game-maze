@@ -193,5 +193,6 @@ export default defineComponent({
 <style scoped>
 .code-editor {
   overflow: auto;
+  background-color: #282c34;
 }
 </style>

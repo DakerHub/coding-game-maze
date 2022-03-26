@@ -82,6 +82,10 @@ export default defineComponent({
       hasMask.value = !hasMask.value;
     };
 
+    const changeInterval = (e: any) => {
+      interval.value = +e.target.value;
+    };
+
     const move = (dx = 0, dy = 0) => {
       const allowValues = [-1, 0, 1];
       if (!(allowValues.includes(dx) && allowValues.includes(dy))) {
@@ -92,13 +96,23 @@ export default defineComponent({
         throw new Error("only allow movement in one direction");
       }
 
+      if (dx === 0 && dy === 0) {
+        throw new Error("the spirte stop to move");
+      }
+
       let nextPosition = { ...curPos };
 
       nextPosition.x = minmax(nextPosition.x + dx, gridProps.maxX, 0);
       nextPosition.y = minmax(nextPosition.y + dy, gridProps.maxY, 0);
 
+      if (nextPosition.x === curPos.x && nextPosition.y === curPos.y) {
+        throw new Error("the sprite stop to move");
+      }
+
       if (!isBlocked(grid, nextPosition)) {
         Object.assign(curPos, nextPosition);
+      } else {
+        throw new Error("can't go through the wall");
       }
 
       record.add({ pos: curPos });
@@ -123,8 +137,10 @@ export default defineComponent({
         try {
           const around = getAroundValue(curPos, grid);
           const codes = editor.value?.getDoc();
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const _diffPos = diffPos;
-          const execCode = `const { dx, dy } = findNext(
+          const execCode = `
+          const { dx, dy } = findNext(
             curPos,
             ${JSON.stringify(around)},
             payload,
@@ -133,7 +149,8 @@ export default defineComponent({
               diffPos: _diffPos
             }
           );
-          move(dx, dy);`;
+          move(dx, dy);
+          `;
           codes.push(execCode);
 
           eval(codes.join("\n"));
@@ -200,6 +217,7 @@ export default defineComponent({
         </div>
         <div class="sidebar">
           <div class="tool">
+            <input value={interval.value} onChange={changeInterval}></input>
             <button onClick={play}>Play</button>
             <button onClick={reset}>Reset</button>
             <button onClick={stop}>Stop</button>
@@ -259,5 +277,31 @@ h1 {
 }
 .tool {
   margin-bottom: 10px;
+}
+input {
+  background-color: transparent;
+  border: thin solid #999;
+  margin-right: 10px;
+  height: 22px;
+  border-radius: 2px;
+  color: #eee;
+  outline: none;
+}
+input:focus {
+  border-color: #2196f3;
+}
+button {
+  background: #333;
+  border: thin solid #999;
+  margin-right: 10px;
+  color: #fff;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+button:hover {
+  background-color: #eee;
+  color: #333;
+  border: thin solid #fff;
 }
 </style>
