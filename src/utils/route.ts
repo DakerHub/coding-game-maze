@@ -1,4 +1,4 @@
-import type { Position } from ".";
+import type { Position, Step } from ".";
 
 // 接受当前格子坐标，返回下一个格子坐标，游戏有自动判赢机制，到达终点自动停止
 // curPos 当前格子坐标
@@ -10,8 +10,8 @@ export function findNext(
   around: (number | undefined)[],
   payload: any,
   uiHelpers: any
-): Position {
-  return { x: curPos.x + 1, y: curPos.y + 1 };
+): Step {
+  return { dx: 1, dy: 0 };
 }
 
 // import { diffPos, type Position } from ".";

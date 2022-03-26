@@ -28,7 +28,7 @@ export default defineComponent({
     const interval = ref(200);
     const grid = reactive(map1.map);
     const gridProps = computed(() => walkGrid(grid)).value;
-    const state = reactive({ manual: true, gridMutable: true });
+    const state = reactive({ manual: false, gridMutable: false });
     const record = new Record();
     const cellStyles = ref({} as any);
 
@@ -100,6 +100,7 @@ export default defineComponent({
     };
 
     const reset = () => {
+      stop();
       Object.assign(curPos, { x: -99, y: -99 });
       nextTick(() => {
         Object.assign(curPos, gridProps.entryPos);

@@ -4,6 +4,11 @@ export type Position = {
   y: number;
 };
 
+export type Step = {
+  dx: -1 | 0 | 1;
+  dy: -1 | 0 | 1;
+};
+
 export function findCellByValue(grid: Grid, num: number): Position | undefined {
   for (let i = 0; i < grid.length; i++) {
     const cols = grid[i];
