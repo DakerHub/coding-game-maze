@@ -2,6 +2,8 @@ import type { Position, Step } from ".";
 
 export const mySolution = `
 // 接受当前格子坐标，返回下一步行动方向，游戏有自动判赢机制，到达终点自动停止
+// 打开DevTools可查看行走步数
+// 
 // curPos { x:0, y:0 } 当前格子坐标
 // around [1, 0, 0, 1], 当前格子周围的格子通行情况，依次为上右下左，0为可通信，1为墙壁，-1起点，-2终点
 // payload 全局存储挂载对象
@@ -115,6 +117,8 @@ function randomIntBetween(min, max) {
 
 export const initialCodeText = `
 // 接受当前格子坐标，返回下一步行动方向，游戏有自动判赢机制，到达终点自动停止
+// 打开DevTools可查看行走步数
+// 
 // curPos { x:0, y:0 } 当前格子坐标
 // around [1, 0, 0, 1], 当前格子周围的格子通行情况，依次为上右下左，0为可通信，1为墙壁，-1起点，-2终点
 // payload 全局存储挂载对象
