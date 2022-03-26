@@ -60,12 +60,12 @@ export default defineComponent({
       const { outPos } = gridProps;
       if (x === outPos?.x && y === outPos.y) {
         console.log(
-          "%cFrank",
+          "%cDaker",
           "color:#fff;background:#333;padding:2px 4px;border-radius:2px;border-left:4px solid red",
           "win!"
         );
         console.log(
-          "%cFrank",
+          "%cDaker",
           "color:#fff;background:#333;padding:2px 4px;border-radius:2px;border-left:4px solid red",
           record.getAll().length
         );
@@ -217,7 +217,12 @@ export default defineComponent({
         </div>
         <div class="sidebar">
           <div class="tool">
-            <input value={interval.value} onChange={changeInterval}></input>
+            <span>Interval(ms): </span>
+            <input
+              value={interval.value}
+              onChange={changeInterval}
+              type="number"
+            ></input>
             <button onClick={play}>Play</button>
             <button onClick={reset}>Reset</button>
             <button onClick={stop}>Stop</button>
@@ -277,6 +282,7 @@ h1 {
 }
 .tool {
   margin-bottom: 10px;
+  color: #eee;
 }
 input {
   background-color: transparent;
@@ -286,6 +292,7 @@ input {
   border-radius: 2px;
   color: #eee;
   outline: none;
+  width: 80px;
 }
 input:focus {
   border-color: #2196f3;
