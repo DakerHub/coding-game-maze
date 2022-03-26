@@ -202,7 +202,7 @@ export default defineComponent({
     return () => (
       <div class="game-canvas">
         <div class="header">
-          <h1>Get out of the maze</h1>
+          <h1>Out of the maze</h1>
         </div>
         <div class="main">
           <MazeView
