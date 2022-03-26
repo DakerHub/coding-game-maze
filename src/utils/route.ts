@@ -1,13 +1,16 @@
 import type { Position, Step } from ".";
 
 export const mySolution = `
-// 接受当前格子坐标，返回下一个格子坐标，游戏有自动判赢机制，到达终点自动停止
+// 接受当前格子坐标，返回下一步行动方向，游戏有自动判赢机制，到达终点自动停止
 // curPos { x:0, y:0 } 当前格子坐标
 // around [1, 0, 0, 1], 当前格子周围的格子通行情况，依次为上右下左，0为可通信，1为墙壁，-1起点，-2终点
 // payload 全局存储挂载对象
 // helpers 帮助函数
 //         - helpers.setCellStyle("background-color: red"); 可设置当前格子的样式
 //         - helpers.diffPos(pos1, pos2) // { dx: 0, dy: 1 }; 返回两个坐标的相对坐标
+// 
+// return { dx: 1, dy: 0 } dx 表示横向位移，1向左，-1向右，0保持不动
+// dy表示纵向位移，1向下，-1向上，0保持不动。每一步只能朝一个方向位移一步，不能斜着走。
 const findNext = function findNext(curPos, around, payload, helpers) {
   if (!payload.visited) {
     payload.visited = {};
@@ -111,13 +114,16 @@ function randomIntBetween(min, max) {
 `;
 
 export const initialCodeText = `
-// 接受当前格子坐标，返回下一个格子坐标，游戏有自动判赢机制，到达终点自动停止
+// 接受当前格子坐标，返回下一步行动方向，游戏有自动判赢机制，到达终点自动停止
 // curPos { x:0, y:0 } 当前格子坐标
 // around [1, 0, 0, 1], 当前格子周围的格子通行情况，依次为上右下左，0为可通信，1为墙壁，-1起点，-2终点
 // payload 全局存储挂载对象
 // helpers 帮助函数
 //         - helpers.setCellStyle("background-color: red"); 可设置当前格子的样式
 //         - helpers.diffPos(pos1, pos2) // { dx: 0, dy: 1 }; 返回两个坐标的相对坐标
+// 
+// return { dx: 1, dy: 0 } dx 表示横向位移，1向左，-1向右，0保持不动
+// dy表示纵向位移，1向下，-1向上，0保持不动。每一步只能朝一个方向位移一步，不能斜着走。
 const findNext = function findNext(curPos, around, payload, helpers) {
   return { dx: 1, dy: 0 };
 }
