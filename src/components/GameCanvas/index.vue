@@ -81,6 +81,10 @@ export default defineComponent({
         throw new Error("dx, dy must be -1/0/-1");
       }
 
+      if (dx * dy !== 0) {
+        throw new Error("only allow movement in one direction");
+      }
+
       let nextPosition = { ...curPos };
 
       nextPosition.x = minmax(nextPosition.x + dx, gridProps.maxX, 0);
