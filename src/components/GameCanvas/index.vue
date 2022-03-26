@@ -44,7 +44,7 @@ export default defineComponent({
 
     const curPos = reactive({ ...gridProps.entryPos } as Position);
 
-    let payload = {};
+    window.payload = {};
 
     const changeGrid = (x: number, y: number, val: number) => {
       grid[y][x] = val;
@@ -128,7 +128,7 @@ export default defineComponent({
       });
       cellStyles.value = {};
       record.clear();
-      payload = {};
+      window.payload = {};
     };
 
     const play = () => {
@@ -144,7 +144,7 @@ export default defineComponent({
           const { dx, dy } = findNext(
             curPos,
             ${JSON.stringify(around)},
-            window,
+            window.payload,
             {
               setCellStyle: _setCellStyle,
               diffPos: _diffPos
