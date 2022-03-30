@@ -109,3 +109,5 @@ export function getPosValue(pos: Position, grid: Grid) {
 
   return grid[y][x];
 }
+
+export * from "./generator";

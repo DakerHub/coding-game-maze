@@ -42,10 +42,22 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    // eslint-disable-next-line vue/no-setup-props-destructure
-    const { maxX, maxY } = props.gridProps;
-    const xAxis = (maxX + 1) * 20;
-    const yAxis = (maxY + 1) * 20;
+    const xAxis = ref<number | undefined>();
+    const yAxis = ref<number | undefined>();
+
+    const viewBox = ref<string>('')
+    watch(
+      props.gridProps,
+      (newValue) => {
+        xAxis.value = (newValue.maxX + 1) * 20;
+        yAxis.value = (newValue.maxY + 1) * 20;
+        viewBox.value = `0 0 ${(newValue.maxX + 1) * 20} ${
+          (newValue.maxY + 1) * 20
+        }`;
+      },
+      { immediate: true }
+    );
+
 
     const onCellClick = (x: number, y: number, col: number) => {
       if (props.mutable) {
@@ -102,12 +114,6 @@ export default defineComponent({
       });
     });
 
-    const viewBox = computed(() => {
-      return `0 0 ${(props.gridProps.maxX + 1) * 20} ${
-        (props.gridProps.maxY + 1) * 20
-      }`;
-    });
-
     const lastPos = reactive({ x: -99, y: -99 } as Position);
     const pathD = ref("");
 
@@ -159,8 +165,8 @@ export default defineComponent({
                   <rect
                     x="0"
                     y="0"
-                    width={xAxis}
-                    height={yAxis}
+                    width={xAxis.value}
+                    height={yAxis.value}
                     fill="white"
                   ></rect>
                   <path d={pathD.value} fill="black" />
@@ -169,8 +175,8 @@ export default defineComponent({
                   mask="url(#mask)"
                   x="0"
                   y="0"
-                  width={xAxis}
-                  height={yAxis}
+                  width={xAxis.value}
+                  height={yAxis.value}
                 ></rect>
               </svg>
             </div>
