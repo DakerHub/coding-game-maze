@@ -33,11 +33,9 @@ export default defineComponent({
     const interval = ref(200);
     const grid = ref(map1.map);
     const gridProps = ref();
-    watch(
-      grid,
-      (newValue) => gridProps.value = walkGrid(newValue),
-      { immediate: true },
-    )
+    watch(grid, (newValue) => (gridProps.value = walkGrid(newValue)), {
+      immediate: true,
+    });
     const state = reactive({
       manual: false,
       gridMutable: false,
@@ -48,7 +46,9 @@ export default defineComponent({
     const codeText = ref(initialCodeText);
     const editor = ref(null as any);
 
-    const randomSeed = ref<number | undefined>(Math.ceil(Math.random() * 10000));
+    const randomSeed = ref<number | undefined>(
+      Math.ceil(Math.random() * 10000)
+    );
     const randomWidth = ref<number | undefined>(map1.map[0].length);
     const randomHeight = ref<number | undefined>(map1.map.length);
 
@@ -96,20 +96,25 @@ export default defineComponent({
     };
 
     const generate = () => {
-      const maze = generateRandomMaze(randomWidth.value, randomHeight.value, true, randomSeed.value);
+      const maze = generateRandomMaze(
+        randomWidth.value,
+        randomHeight.value,
+        true,
+        randomSeed.value
+      );
       grid.value = maze.map;
       randomSeed.value = maze.seed;
       randomWidth.value = maze.width;
       randomHeight.value = maze.height;
       reset();
-    }
+    };
 
     const generateRandom = () => {
       randomSeed.value = undefined;
       randomWidth.value = undefined;
       randomHeight.value = undefined;
       generate();
-    }
+    };
 
     const changeInterval = (e: any) => {
       interval.value = +e.target.value;
@@ -237,6 +242,32 @@ export default defineComponent({
           <h1>Out of the maze</h1>
         </div>
         <div class="main">
+          <div class="tool">
+            <span>Seed: </span>
+            <input
+              value={randomSeed.value}
+              onChange={(e: any) =>
+                (randomSeed.value = !!e.target.value
+                  ? +e.target.value
+                  : undefined)
+              }
+              type="number"
+            ></input>
+            <span>Width: </span>
+            <input
+              value={randomWidth.value}
+              onChange={(e: any) => (randomWidth.value = +e.target.value)}
+              type="number"
+            ></input>
+            <span>Height: </span>
+            <input
+              value={randomHeight.value}
+              onChange={(e: any) => (randomHeight.value = +e.target.value)}
+              type="number"
+            ></input>
+            <button onClick={generate}>Generate</button>
+            <button onClick={generateRandom}>Random</button>
+          </div>
           <MazeView
             grid={grid.value}
             gridProps={gridProps}
@@ -245,6 +276,7 @@ export default defineComponent({
             mutable={state.gridMutable}
             cellStyles={cellStyles.value}
             hasMask={hasMask.value}
+            interval={interval.value}
           ></MazeView>
         </div>
         <div class="sidebar">
@@ -262,27 +294,6 @@ export default defineComponent({
             <button onClick={toggleDoc}>
               {state.emptyDoc ? "Daker's solution" : "Do it yourself"}
             </button>
-            <br />
-            <span>Seed: </span>
-            <input
-              value={randomSeed.value}
-              onChange={(e: any) => randomSeed.value = !!e.target.value ? +e.target.value : undefined}
-              type="number"
-            ></input>
-            <span>Width: </span>
-            <input
-              value={randomWidth.value}
-              onChange={(e: any) => randomWidth.value = +e.target.value}
-              type="number"
-            ></input>
-            <span>Height: </span>
-            <input
-              value={randomHeight.value}
-              onChange={(e: any) => randomHeight.value = +e.target.value}
-              type="number"
-            ></input>
-            <button onClick={generate}>Generate</button>
-            <button onClick={generateRandom}>Random</button>
           </div>
           <CodeEditor ref={editor} value={codeText.value}></CodeEditor>
         </div>
@@ -308,7 +319,7 @@ export default defineComponent({
   border-bottom: 2px solid #333;
 }
 .main {
-  padding: 40px 0;
+  padding: 10px;
 }
 h1 {
   margin: 0;

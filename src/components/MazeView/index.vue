@@ -40,12 +40,16 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    interval: {
+      type: Number,
+      default: 200,
+    },
   },
   setup(props, { emit }) {
     const xAxis = ref<number | undefined>();
     const yAxis = ref<number | undefined>();
 
-    const viewBox = ref<string>('')
+    const viewBox = ref<string>("");
     watch(
       props.gridProps,
       (newValue) => {
@@ -57,7 +61,6 @@ export default defineComponent({
       },
       { immediate: true }
     );
-
 
     const onCellClick = (x: number, y: number, col: number) => {
       if (props.mutable) {
@@ -155,7 +158,11 @@ export default defineComponent({
         <div class="maze-view-center">
           <div class="maze-view-grid">{Rows.value}</div>
           <div class="maze-view-sprite-container">
-            <MazeSprite grid={props.grid} curPos={props.curPos}></MazeSprite>
+            <MazeSprite
+              grid={props.grid}
+              curPos={props.curPos}
+              interval={props.interval}
+            ></MazeSprite>
           </div>
 
           {props.hasMask && (

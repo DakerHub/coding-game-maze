@@ -14,10 +14,16 @@ export default defineComponent({
       type: Object as PropType<Position>,
       default: () => ({ x: 0, y: 0 }),
     },
+    interval: {
+      type: Number,
+      default: 200,
+    },
   },
   setup(props) {
     const style = computed(() => {
-      return `top: ${props.curPos.y * 20}px; left: ${props.curPos.x * 20}px`;
+      return `top: ${props.curPos.y * 20}px; left: ${
+        props.curPos.x * 20
+      }px; transition-duration: ${props.interval}ms;`;
     });
 
     return () => (
