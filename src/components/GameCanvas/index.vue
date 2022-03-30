@@ -8,6 +8,7 @@ import {
   onMounted,
   reactive,
   ref,
+  watch,
 } from "vue";
 import MazeView from "@/components/MazeView/index.vue";
 import CodeEditor from "@/components/CodeEditor/index.vue";
@@ -20,6 +21,7 @@ import {
   type Position,
   getAroundValue,
   diffPos,
+  generateRandomMaze,
 } from "@/utils";
 import Record from "@/utils/record";
 import { initialCodeText, mySolution } from "@/utils/route";
@@ -29,8 +31,13 @@ export default defineComponent({
   setup(props) {
     const hasMask = ref(true);
     const interval = ref(200);
-    const grid = reactive(map1.map);
-    const gridProps = computed(() => walkGrid(grid)).value;
+    const grid = ref(map1.map);
+    const gridProps = ref();
+    watch(
+      grid,
+      (newValue) => gridProps.value = walkGrid(newValue),
+      { immediate: true },
+    )
     const state = reactive({
       manual: false,
       gridMutable: false,
@@ -41,15 +48,19 @@ export default defineComponent({
     const codeText = ref(initialCodeText);
     const editor = ref(null as any);
 
+    const randomSeed = ref<number | undefined>(Math.ceil(Math.random() * 10000));
+    const randomWidth = ref<number | undefined>(map1.map[0].length);
+    const randomHeight = ref<number | undefined>(map1.map.length);
+
     let timer = 0;
 
-    const curPos = reactive({ ...gridProps.entryPos } as Position);
+    const curPos = reactive({ ...gridProps.value.entryPos } as Position);
 
     // @ts-ignore
     window.payload = {};
 
     const changeGrid = (x: number, y: number, val: number) => {
-      grid[y][x] = val;
+      grid.value[y][x] = val;
     };
 
     const toggleDoc = () => {
@@ -59,7 +70,7 @@ export default defineComponent({
 
     const checkGame = () => {
       const { x, y } = curPos;
-      const { outPos } = gridProps;
+      const { outPos } = gridProps.value;
       if (x === outPos?.x && y === outPos.y) {
         console.log(
           "%cDaker",
@@ -84,6 +95,22 @@ export default defineComponent({
       hasMask.value = !hasMask.value;
     };
 
+    const generate = () => {
+      const maze = generateRandomMaze(randomWidth.value, randomHeight.value, true, randomSeed.value);
+      grid.value = maze.map;
+      randomSeed.value = maze.seed;
+      randomWidth.value = maze.width;
+      randomHeight.value = maze.height;
+      reset();
+    }
+
+    const generateRandom = () => {
+      randomSeed.value = undefined;
+      randomWidth.value = undefined;
+      randomHeight.value = undefined;
+      generate();
+    }
+
     const changeInterval = (e: any) => {
       interval.value = +e.target.value;
     };
@@ -104,14 +131,14 @@ export default defineComponent({
 
       let nextPosition = { ...curPos };
 
-      nextPosition.x = minmax(nextPosition.x + dx, gridProps.maxX, 0);
-      nextPosition.y = minmax(nextPosition.y + dy, gridProps.maxY, 0);
+      nextPosition.x = minmax(nextPosition.x + dx, gridProps.value.maxX, 0);
+      nextPosition.y = minmax(nextPosition.y + dy, gridProps.value.maxY, 0);
 
       if (nextPosition.x === curPos.x && nextPosition.y === curPos.y) {
         throw new Error("the sprite stop to move");
       }
 
-      if (!isBlocked(grid, nextPosition)) {
+      if (!isBlocked(grid.value, nextPosition)) {
         Object.assign(curPos, nextPosition);
       } else {
         throw new Error("can't go through the wall");
@@ -126,7 +153,7 @@ export default defineComponent({
       stop();
       Object.assign(curPos, { x: -99, y: -99 });
       nextTick(() => {
-        Object.assign(curPos, gridProps.entryPos);
+        Object.assign(curPos, gridProps.value.entryPos);
       });
       cellStyles.value = {};
       record.clear();
@@ -139,7 +166,7 @@ export default defineComponent({
       clearInterval(timer);
       timer = setInterval(() => {
         try {
-          const around = getAroundValue(curPos, grid);
+          const around = getAroundValue(curPos, grid.value);
           const codes = editor.value?.getDoc();
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const _diffPos = diffPos;
@@ -211,7 +238,7 @@ export default defineComponent({
         </div>
         <div class="main">
           <MazeView
-            grid={grid}
+            grid={grid.value}
             gridProps={gridProps}
             curPos={curPos}
             onCellChange={changeGrid}
@@ -235,6 +262,27 @@ export default defineComponent({
             <button onClick={toggleDoc}>
               {state.emptyDoc ? "Daker's solution" : "Do it yourself"}
             </button>
+            <br />
+            <span>Seed: </span>
+            <input
+              value={randomSeed.value}
+              onChange={(e: any) => randomSeed.value = !!e.target.value ? +e.target.value : undefined}
+              type="number"
+            ></input>
+            <span>Width: </span>
+            <input
+              value={randomWidth.value}
+              onChange={(e: any) => randomWidth.value = +e.target.value}
+              type="number"
+            ></input>
+            <span>Height: </span>
+            <input
+              value={randomHeight.value}
+              onChange={(e: any) => randomHeight.value = +e.target.value}
+              type="number"
+            ></input>
+            <button onClick={generate}>Generate</button>
+            <button onClick={generateRandom}>Random</button>
           </div>
           <CodeEditor ref={editor} value={codeText.value}></CodeEditor>
         </div>
